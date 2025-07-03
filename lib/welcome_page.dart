@@ -1,9 +1,35 @@
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Charger les variables d'environnement
+await dotenv.load(fileName: ".env");
+
+
+
   runApp(MaterialApp(
     home: WelcomePage(),
+    theme: ThemeData(
+      primaryColor: Color(0xFF1D6EFD),
+      colorScheme: ColorScheme.fromSwatch().copyWith(
+        primary: Color(0xFF1D6EFD),
+        secondary: Color(0xFF1D6EFD),
+      ),
+      checkboxTheme: CheckboxThemeData(
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        floatingLabelStyle: TextStyle(color: Color(0xFF1D6EFD)),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF1D6EFD)),
+        ),
+      ),
+    ),
   ));
 }
 

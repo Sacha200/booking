@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/login_page.dart';
+import 'package:flutter_application_1/services/auth_service.dart';
 
 class SignUpPage extends StatefulWidget {
 
@@ -8,8 +10,12 @@ class SignUpPage extends StatefulWidget {
 
 // ici on définit le state de la page de signup
 class _SignUpPageState extends State<SignUpPage> {
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _agree = false;
+  bool _isLoading = false;
   
   @override
   Widget build(BuildContext context) {
@@ -35,6 +41,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 32),
               // Champ de texte pour le nom
               TextField(
+                controller: nameController,
                 decoration: InputDecoration(
                   labelText: "Name",
                   hintText: "John Doe",
@@ -49,6 +56,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 16),
               // Champ de texte pour l'email
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
                   labelText: "Email",
                   hintText: "john.doe@gmail.com",
@@ -64,6 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 16),
               // Champ de texte pour le mot de passe
               TextField(
+               controller: passwordController,
                obscureText: _obscurePassword,
                decoration: InputDecoration(
                 labelText: "Password",
@@ -114,9 +123,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 ],
                 ),
                 const SizedBox(height: 24),
+                
                 // Bouton de création de compte
                 ElevatedButton(
-                  onPressed: _agree ? () {} : null,
+                  onPressed: _agree && !_isLoading ? _handleSignUp : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D6EFD),
                     shape: RoundedRectangleBorder(
@@ -124,10 +134,19 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text(
-                    "Sign Up",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+                  child: _isLoading
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          "Sign Up",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -145,11 +164,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialButton(Icons.apple, () {}),
+                    _buildSocialButton("assets/apple.png", _handleAppleSignIn, size: 32),
                     const SizedBox(width: 16),
-                    _buildSocialButton(Icons.g_mobiledata, () {}),
+                    _buildSocialButton("assets/google.png", _handleGoogleSignIn),
                     const SizedBox(width: 16),
-                    _buildSocialButton(Icons.facebook, () {}),
+                    _buildSocialButton("assets/facebook.png", _handleFacebookSignIn),
                   ],
                 ),
 
@@ -160,15 +179,20 @@ class _SignUpPageState extends State<SignUpPage> {
                     const Text("Already have an account?"),
                     GestureDetector(
                       onTap: () {
-                        // Naviguer vers la page de connexion
+                          Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => LoginPage()),
+  );
                       },
                       child: const Text(
                         "Sign In",
                         style: TextStyle(
                           color: Color(0xFF1D6EFD),
                           fontWeight: FontWeight.bold,
+                          
                         ),
                       ),
+                      
                     ),
                   ],
                 ),
@@ -178,19 +202,120 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
     );
   }
-  Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Icon(icon, size: 28),
+  Widget _buildSocialButton(String assetPath, VoidCallback onTap, {double size = 28 }) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(30),
+    child: Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(color: Color(0xFFCDCDCD)),
       ),
-    );
+      child: Image.asset(
+        assetPath,
+       width: size,
+        height: size,
+      ),
+    ),
+  );
+}
+
+  // Méthode pour gérer l'inscription avec email/mot de passe
+  Future<void> _handleSignUp() async {
+    if (nameController.text.isEmpty || 
+        emailController.text.isEmpty || 
+        passwordController.text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Veuillez remplir tous les champs')),
+        );
+      }
+      return;
+    }
+
+    if (passwordController.text.length < 6) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Le mot de passe doit contenir au moins 6 caractères')),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await AuthService.signUp(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+        userData: {
+          'name': nameController.text.trim(),
+        },
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Compte créé avec succès ! Vérifiez votre email.')),
+        );
+        
+        // Retourner à la page de connexion
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de l\'inscription: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Méthode pour gérer l'inscription avec Google
+  Future<void> _handleGoogleSignIn() async {
+    try {
+      await AuthService.signInWithGoogle();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de connexion Google: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  // Méthode pour gérer l'inscription avec Facebook
+  Future<void> _handleFacebookSignIn() async {
+    try {
+      await AuthService.signInWithFacebook();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de connexion Facebook: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  // Méthode pour gérer l'inscription avec Apple
+  Future<void> _handleAppleSignIn() async {
+    try {
+      await AuthService.signInWithApple();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de connexion Apple: ${e.toString()}')),
+        );
+      }
+    }
   }
 }

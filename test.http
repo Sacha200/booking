@@ -1,0 +1,2 @@
+GET https://test.api.amadeus.com/v3/shopping/hotel-offers?hotelIds=MCLONGHM&adults=1&checkInDate=2025-08-22&roomQuantity=1&paymentPolicy=NONE&bestRateOnly=true
+Authorization: Bearer kvWh5VWlkgxGGskk5urBQxA2UGuT
