@@ -1,0 +1,31 @@
+{
+    "data": [
+        {
+            "chainCode": "HN",
+            "iataCode": "PAR",
+            "dupeId": 502345064,
+            "name": "HN TEST PROPERTY1 FOR E2E TESTING",
+            "hotelId": "HNPARKGU",
+            "geoCode": {
+                "latitude": 48.85315,
+                "longitude": 2.34513
+            },
+            "address": {
+                "countryCode": "FR",
+                "postalCode": "28027",
+                "cityName": "Paris",
+                "lines": ["NICE, FRANCE"]
+            },
+            "distance": {
+                "value": 0.12,
+                "unit": "KM"
+            },
+            "lastUpdate": "2025-07-03T09:00:05",
+            "retailing": {
+                "sponsorship": {
+                    "isSponsored": true
+                }
+            }
+        }
+    ]
+}

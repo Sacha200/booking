@@ -1,113 +1,51 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
-  static final SupabaseClient _supabase = Supabase.instance.client;
+  static String? _currentEmail;
+  static String? _currentName;
+  static String? _currentPassword;
+  static bool _isAuthenticated = false;
 
-  // Initialiser Supabase
-  static Future<void> initialize() async {
-    await Supabase.initialize(
-      url: 'https://fjtrlacpwhcijcfqnnlv.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdHJsYWNwd2hjaWpjZnFubmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDgxMTQsImV4cCI6MjA2NzAyNDExNH0.66bkCwJV4sSwhu5Q4g0LkJIoYvUoRdVKG-bsxj9khP0',
-    );
-  }
+  // Stockage local simulé (en mémoire)
+  static final Map<String, Map<String, String>> _users = {};
 
-  // Obtenir l'utilisateur actuel
-  static User? get currentUser => _supabase.auth.currentUser;
+  static String? get currentUser => _currentEmail;
+  static bool get isAuthenticated => _isAuthenticated;
 
-  // Stream pour écouter les changements d'authentification
-  static Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
-
-  // Inscription avec email et mot de passe
-  static Future<AuthResponse> signUp({
+  // Inscription locale
+  static Future<void> signUp({
     required String email,
     required String password,
     Map<String, dynamic>? userData,
   }) async {
-    try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: userData,
-      );
-      return response;
-    } catch (e) {
-      rethrow;
+    if (_users.containsKey(email)) {
+      throw Exception('Cet email est déjà utilisé.');
     }
+    _users[email] = {
+      'password': password,
+      'name': userData?['name'] ?? '',
+    };
   }
 
-  // Connexion avec email et mot de passe
-  static Future<AuthResponse> signIn({
+  // Connexion locale
+  static Future<void> signIn({
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      return response;
-    } catch (e) {
-      rethrow;
+    if (!_users.containsKey(email) || _users[email]!['password'] != password) {
+      throw Exception('Email ou mot de passe incorrect.');
     }
-  }
-
-  // Connexion avec Google
-  static Future<void> signInWithGoogle() async {
-    try {
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback/',
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Connexion avec Facebook
-  static Future<void> signInWithFacebook() async {
-    try {
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.facebook,
-        redirectTo: 'io.supabase.flutter://login-callback/',
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Connexion avec Apple
-  static Future<void> signInWithApple() async {
-    try {
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.apple,
-        redirectTo: 'io.supabase.flutter://login-callback/',
-      );
-    } catch (e) {
-      rethrow;
-    }
+    _currentEmail = email;
+    _currentName = _users[email]!['name'];
+    _currentPassword = password;
+    _isAuthenticated = true;
   }
 
   // Déconnexion
   static Future<void> signOut() async {
-    try {
-      await _supabase.auth.signOut();
-    } catch (e) {
-      rethrow;
-    }
+    _currentEmail = null;
+    _currentName = null;
+    _currentPassword = null;
+    _isAuthenticated = false;
   }
-
-  // Réinitialiser le mot de passe
-  static Future<void> resetPassword(String email) async {
-    try {
-      await _supabase.auth.resetPasswordForEmail(
-        email,
-        redirectTo: 'io.supabase.flutter://reset-callback/',
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Vérifier si l'utilisateur est connecté
-  static bool get isAuthenticated => currentUser != null;
 } 

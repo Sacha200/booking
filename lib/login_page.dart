@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/services/auth_service.dart';
 import 'package:flutter_application_1/signup_page.dart';
+import 'package:flutter_application_1/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -77,9 +77,7 @@ class _LoginPageState extends State<LoginPage> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {
-                    // Action pour mot de passe oublié
-                  },
+                  onPressed: () {},
                   child: const Text(
                     "Forgot Password?",
                     style: TextStyle(color: Color(0xFF1D6EFD)),
@@ -127,11 +125,11 @@ class _LoginPageState extends State<LoginPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildSocialButton('assets/apple.png', _handleAppleSignIn, size: 36),
+                  _buildSocialButton('assets/apple.png', () {} , size: 36),
                   const SizedBox(width: 16),
-                  _buildSocialButton('assets/google.png', _handleGoogleSignIn),
+                  _buildSocialButton('assets/google.png', () {}),
                   const SizedBox(width: 16),
-                  _buildSocialButton('assets/facebook.png', _handleFacebookSignIn),
+                  _buildSocialButton('assets/facebook.png', () {}),
                 ],
               ),
               const SizedBox(height: 24),
@@ -182,79 +180,20 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Méthode pour gérer la connexion avec email/mot de passe
+  // Connexion sans AuthService, redirige directement vers HomePage
   Future<void> _handleSignIn() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Veuillez remplir tous les champs')),
-        );
-      }
-      return;
-    }
-
     setState(() {
       _isLoading = true;
     });
-
-    try {
-      await AuthService.signIn(
-        email: emailController.text.trim(),
-        password: passwordController.text,
+    await Future.delayed(Duration(milliseconds: 500));
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
-      
-      // La navigation se fait automatiquement via AuthWrapper
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
-  }
-
-  // Méthode pour gérer la connexion avec Google
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      await AuthService.signInWithGoogle();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion Google: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  // Méthode pour gérer la connexion avec Facebook
-  Future<void> _handleFacebookSignIn() async {
-    try {
-      await AuthService.signInWithFacebook();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion Facebook: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  // Méthode pour gérer la connexion avec Apple
-  Future<void> _handleAppleSignIn() async {
-    try {
-      await AuthService.signInWithApple();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion Apple: ${e.toString()}')),
-        );
-      }
-    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 }

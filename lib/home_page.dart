@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 //import 'package:geolocator/geolocator.dart';
 import 'services/hotel_service.dart';
 import 'services/auth_service.dart';
+import 'screens/hotel_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -242,7 +243,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             SizedBox(
-              height: 220,
+              height: 280,
               child: _isLoading
                   ? Center(child: CircularProgressIndicator(color: Color(0xFF1D6EFD)))
                   : _errorMessage.isNotEmpty
@@ -343,35 +344,12 @@ class _HomePageState extends State<HomePage> {
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                 ),
-                child: hotel.imageUrl != null && hotel.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        hotel.imageUrl!,
+                child: hotel.imageAsset != null
+                    ? Image.asset(
+                        hotel.imageAsset!,
                         height: 100,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 100,
-                            width: double.infinity,
-                            color: Colors.grey[300],
-                            child: Icon(Icons.hotel, size: 32, color: Colors.grey),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            height: 100,
-                            width: double.infinity,
-                            color: Colors.grey[300],
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            ),
-                          );
-                        },
                       )
                     : Container(
                         height: 100,
@@ -410,7 +388,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        hotel.lowestPrice != null ? '${hotel.lowestPrice!.toStringAsFixed(0)} ${hotel.currency}' : 'Prix ?',
+                        'Disponible',
                         style: TextStyle(
                           color: Color(0xFF1D6EFD),
                           fontSize: 12,
@@ -438,6 +416,8 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   hotel.name,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4),
                 Row(
@@ -446,7 +426,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 2),
                     Expanded(
                       child: Text(
-                        hotel.address ?? hotel.city ?? '',
+                        '${hotel.city ?? 'Ville inconnue'}${hotel.country != null ? ', ${hotel.country}' : ''}',
                         style: TextStyle(color: Colors.grey, fontSize: 12),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -454,21 +434,47 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      hotel.lowestPrice != null ? '\$${hotel.lowestPrice!.toStringAsFixed(0)}' : 'Prix ?',
-                      style: TextStyle(
-                        color: Color(0xFF1D6EFD),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                Text(
+                  hotel.lowestPrice != null ? '${hotel.lowestPrice!.toStringAsFixed(0)} ${hotel.currency}' : 'Prix ?',
+                  style: TextStyle(
+                    color: Color(0xFF1D6EFD),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 4),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HotelDetailPage(
+                          title: hotel.name,
+                          address: hotel.address ?? '',
+                          price: hotel.lowestPrice ?? 0.0,
+                          rating: hotel.rating ?? 0.0,
+                          galleryAssets: hotel.imageAsset != null ? [hotel.imageAsset!] : [],
+                        ),
                       ),
-                    ),
-                    Text(
-                      ' /night',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        'Voir détails',
+                        style: TextStyle(
+                          color: Color(0xFF1D6EFD),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Color(0xFF1D6EFD),
+                        size: 12,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -486,63 +492,82 @@ class _HomePageState extends State<HomePage> {
     required String discount,
     required double rating,
   }) {
-    return Container(
-      width: 220,
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(image, height: 60, width: 60, fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF1D6EFD).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(discount, style: TextStyle(color: Color(0xFF1D6EFD), fontSize: 12, fontWeight: FontWeight.bold)),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.star, color: Colors.amber, size: 16),
-                    Text(rating.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 14, color: Colors.grey),
-                    const SizedBox(width: 2),
-                    Text(location, style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text('\$ $price /night', style: TextStyle(color: Color(0xFF1D6EFD), fontWeight: FontWeight.bold, fontSize: 14)),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HotelDetailPage(
+              title: title,
+              address: location,
+              price: price.toDouble(),
+              rating: rating,
+              galleryAssets: [
+                image,
+                'assets/hotel1.jpg', // Ajoute d'autres images assets ici
               ],
             ),
           ),
-        ],
+        );
+      },
+      child: Container(
+        width: 220,
+        margin: const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(image, height: 60, width: 60, fit: BoxFit.cover),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF1D6EFD).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(discount, style: TextStyle(color: Color(0xFF1D6EFD), fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.star, color: Colors.amber, size: 16),
+                      Text(rating.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 14, color: Colors.grey),
+                      const SizedBox(width: 2),
+                      Text(location, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('\$ $price /night', style: TextStyle(color: Color(0xFF1D6EFD), fontWeight: FontWeight.bold, fontSize: 14)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

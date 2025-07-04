@@ -388,52 +388,30 @@ class _HotelSearchScreenState extends State<HotelSearchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nom et note
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        hotel.name,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    if (hotel.rating != null)
-                      Row(
-                        children: [
-                          Icon(Icons.star, color: Colors.amber, size: 20),
-                          SizedBox(width: 4),
-                          Text(
-                            hotel.rating!.toStringAsFixed(1),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+                // Nom de l'hôtel
+                Text(
+                  hotel.name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 
                 SizedBox(height: 8),
                 
-                // Adresse
-                if (hotel.address != null)
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          hotel.address!,
-                          style: TextStyle(color: Colors.grey),
-                        ),
+                // Ville et pays
+                Row(
+                  children: [
+                    Icon(Icons.location_city, size: 16, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${hotel.city ?? 'Ville inconnue'}${hotel.country != null ? ', ${hotel.country}' : ''}',
+                        style: TextStyle(color: Colors.grey),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
                 
                 SizedBox(height: 12),
                 

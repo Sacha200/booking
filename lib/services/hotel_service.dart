@@ -1,10 +1,161 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+//import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HotelService {
   static String? _accessToken;
   static DateTime? _tokenExpiry;
+  
+  // Token fourni par l'utilisateur
+  static const String _userToken = 'hdRt7WKzcph23iZcTeYCFmApuAB6';
+
+  // Données JSON statiques pour les hôtels avec images
+  static const String _hotelsJson = '''
+  {
+    "data": [
+      {
+        "chainCode": "HN",
+        "iataCode": "PAR",
+        "dupeId": 502345064,
+        "name": "HN TEST PROPERTY1 FOR E2E TESTING",
+        "hotelId": "HNPARKGU",
+        "geoCode": {
+          "latitude": 48.85315,
+          "longitude": 2.34513
+        },
+        "address": {
+          "countryCode": "FR",
+          "postalCode": "28027",
+          "cityName": "Paris",
+          "lines": ["NICE, FRANCE"]
+        },
+        "distance": {
+          "value": 0.12,
+          "unit": "KM"
+        },
+        "lastUpdate": "2025-07-03T09:00:05",
+        "retailing": {
+          "sponsorship": {
+            "isSponsored": true
+          }
+        },
+        "imageAsset": "assets/hotel1.jpg"
+      },
+      {
+        "chainCode": "AC",
+        "iataCode": "PAR",
+        "dupeId": 502345065,
+        "name": "Hôtel Champs Élysées",
+        "hotelId": "ACPARIS01",
+        "geoCode": {
+          "latitude": 48.8698,
+          "longitude": 2.3077
+        },
+        "address": {
+          "countryCode": "FR",
+          "postalCode": "75008",
+          "cityName": "Paris",
+          "lines": ["123 Avenue des Champs-Élysées"]
+        },
+        "distance": {
+          "value": 0.25,
+          "unit": "KM"
+        },
+        "lastUpdate": "2025-07-03T09:00:05",
+        "retailing": {
+          "sponsorship": {
+            "isSponsored": false
+          }
+        },
+        "imageAsset": "assets/hotel2.jpg"
+      },
+      {
+        "chainCode": "IB",
+        "iataCode": "PAR",
+        "dupeId": 502345066,
+        "name": "Ibis Paris Centre",
+        "hotelId": "IBPARIS02",
+        "geoCode": {
+          "latitude": 48.8566,
+          "longitude": 2.3522
+        },
+        "address": {
+          "countryCode": "FR",
+          "postalCode": "75001",
+          "cityName": "Paris",
+          "lines": ["15 Rue de Rivoli"]
+        },
+        "distance": {
+          "value": 0.18,
+          "unit": "KM"
+        },
+        "lastUpdate": "2025-07-03T09:00:05",
+        "retailing": {
+          "sponsorship": {
+            "isSponsored": true
+          }
+        },
+        "imageAsset": "assets/hotel3.jpg"
+      },
+      {
+        "chainCode": "NH",
+        "iataCode": "PAR",
+        "dupeId": 502345067,
+        "name": "NH Paris Eiffel Tower",
+        "hotelId": "NHPARIS03",
+        "geoCode": {
+          "latitude": 48.8584,
+          "longitude": 2.2945
+        },
+        "address": {
+          "countryCode": "FR",
+          "postalCode": "75007",
+          "cityName": "Paris",
+          "lines": ["7 Avenue de Suffren"]
+        },
+        "distance": {
+          "value": 0.32,
+          "unit": "KM"
+        },
+        "lastUpdate": "2025-07-03T09:00:05",
+        "retailing": {
+          "sponsorship": {
+            "isSponsored": false
+          }
+        },
+        "imageAsset": "assets/hotel4.jpg"
+      },
+      {
+        "chainCode": "MG",
+        "iataCode": "PAR",
+        "dupeId": 502345068,
+        "name": "Mercure Paris Montmartre",
+        "hotelId": "MGPARIS04",
+        "geoCode": {
+          "latitude": 48.8867,
+          "longitude": 2.3431
+        },
+        "address": {
+          "countryCode": "FR",
+          "postalCode": "75018",
+          "cityName": "Paris",
+          "lines": ["20 Rue de la Fontaine du But"]
+        },
+        "distance": {
+          "value": 0.45,
+          "unit": "KM"
+        },
+        "lastUpdate": "2025-07-03T09:00:05",
+        "retailing": {
+          "sponsorship": {
+            "isSponsored": true
+          }
+        },
+        "imageAsset": "assets/hotel5.jpg"
+      }
+    ]
+  }
+  ''';
 
   // Obtenir un token d'accès
   static Future<String?> _getAccessToken() async {
@@ -21,8 +172,8 @@ class HotelService {
 
     final body = {
       "grant_type": "client_credentials",
-      "client_id": dotenv.env['AMADEUS_CLIENT_ID'] ?? '',
-      "client_secret": dotenv.env['AMADEUS_CLIENT_SECRET'] ?? ''
+       "client_id":'Azf3sM3HBbCPxaq3f3rPu8T1EBSRq3Ru',
+    "client_secret": 'xRDMPXEfniiKNhnm'
     };
 
     try {
@@ -44,7 +195,7 @@ class HotelService {
     }
   }
 
-  // Rechercher des hôtels par ville
+  // Rechercher des hôtels par ville (utilise maintenant les données JSON statiques)
   static Future<List<Hotel>> searchHotelsByCity({
     required String cityCode,
     required String checkInDate,
@@ -52,43 +203,18 @@ class HotelService {
     int adults = 1,
     int roomQuantity = 1,
   }) async {
-    final token = await _getAccessToken();
-    if (token == null) {
-      throw Exception('Impossible d\'obtenir le token d\'accès');
-    }
-
-    final url = Uri.parse(
-      'https://test.api.amadeus.com/v2/shopping/hotel-offers'
-      '?cityCode=$cityCode'
-      '&checkInDate=$checkInDate'
-      '&checkOutDate=$checkOutDate'
-      '&adults=$adults'
-      '&roomQuantity=$roomQuantity'
-      '&bestRateOnly=true'
-      '&currency=EUR'
-    );
-
-    final headers = {
-      'Authorization': 'Bearer $token',
-    };
-
+    // Utiliser les données JSON statiques au lieu d'appeler l'API
     try {
-      final response = await http.get(url, headers: headers);
-      
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        return _parseHotels(jsonResponse);
-      } else {
-        print('Erreur lors de la recherche d\'hôtels: ${response.body}');
-        return [];
-      }
+      final jsonResponse = jsonDecode(_hotelsJson);
+      print('Données JSON statiques utilisées');
+      return _parseHotels(jsonResponse);
     } catch (e) {
-      print('Erreur de connexion: $e');
+      print('Erreur lors du parsing des données JSON: $e');
       return [];
     }
   }
 
-  // Rechercher des hôtels par géolocalisation
+  // Rechercher des hôtels par géolocalisation (utilise maintenant les données JSON statiques)
   static Future<List<Hotel>> searchHotelsByLocation({
     required double latitude,
     required double longitude,
@@ -98,41 +224,13 @@ class HotelService {
     int roomQuantity = 1,
     double radius = 5.0, // Rayon en km
   }) async {
-    final token = await _getAccessToken();
-    if (token == null) {
-      throw Exception('Impossible d\'obtenir le token d\'accès');
-    }
-
-    final url = Uri.parse(
-      'https://test.api.amadeus.com/v2/shopping/hotel-offers'
-      '?latitude=$latitude'
-      '&longitude=$longitude'
-      '&radius=$radius'
-      '&radiusUnit=KM'
-      '&checkInDate=$checkInDate'
-      '&checkOutDate=$checkOutDate'
-      '&adults=$adults'
-      '&roomQuantity=$roomQuantity'
-      '&bestRateOnly=true'
-      '&currency=EUR'
-    );
-
-    final headers = {
-      'Authorization': 'Bearer $token',
-    };
-
+    // Utiliser les données JSON statiques au lieu d'appeler l'API
     try {
-      final response = await http.get(url, headers: headers);
-      
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        return _parseHotels(jsonResponse);
-      } else {
-        print('Erreur lors de la recherche d\'hôtels: ${response.body}');
-        return [];
-      }
+      final jsonResponse = jsonDecode(_hotelsJson);
+      print('Données JSON statiques utilisées pour la géolocalisation');
+      return _parseHotels(jsonResponse);
     } catch (e) {
-      print('Erreur de connexion: $e');
+      print('Erreur lors du parsing des données JSON: $e');
       return [];
     }
   }
@@ -202,6 +300,7 @@ class Hotel {
   final List<String> amenities;
   final List<RoomOffer> offers;
   final String? imageUrl;
+  final String? imageAsset;
 
   Hotel({
     required this.id,
@@ -216,25 +315,25 @@ class Hotel {
     required this.amenities,
     required this.offers,
     this.imageUrl,
+    this.imageAsset,
   });
 
   factory Hotel.fromJson(Map<String, dynamic> json) {
-    final hotel = json['hotel'] ?? {};
-    final offers = json['offers'] ?? [];
-    
+    final address = json['address'] ?? {};
     return Hotel(
-      id: hotel['hotelId'] ?? '',
-      name: hotel['name'] ?? 'Hôtel sans nom',
-      description: hotel['description']?['text'],
-      rating: hotel['rating']?.toDouble(),
-      address: hotel['address']?['lines']?.join(', '),
-      city: hotel['address']?['cityName'],
-      country: hotel['address']?['countryCode'],
-      latitude: hotel['geoCode']?['latitude']?.toDouble(),
-      longitude: hotel['geoCode']?['longitude']?.toDouble(),
-      amenities: _parseAmenities(hotel['amenities'] ?? []),
-      offers: offers.map<RoomOffer>((offer) => RoomOffer.fromJson(offer)).toList(),
-      imageUrl: _validateImageUrl(hotel['media']?.first?['uri']),
+      id: json['hotelId'] ?? '',
+      name: json['name'] ?? 'Hôtel sans nom',
+      description: null,
+      rating: null,
+      address: address['lines']?.join(', '),
+      city: address['cityName'],
+      country: address['countryCode'],
+      latitude: json['geoCode']?['latitude']?.toDouble(),
+      longitude: json['geoCode']?['longitude']?.toDouble(),
+      amenities: [],
+      offers: [],
+      imageUrl: null,
+      imageAsset: json['imageAsset'],
     );
   }
 

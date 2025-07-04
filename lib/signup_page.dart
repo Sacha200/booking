@@ -164,11 +164,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialButton("assets/apple.png", _handleAppleSignIn, size: 32),
+                    _buildSocialButton("assets/apple.png", _handleSignUp, size: 32),
                     const SizedBox(width: 16),
-                    _buildSocialButton("assets/google.png", _handleGoogleSignIn),
+                    _buildSocialButton("assets/google.png", _handleSignUp),
                     const SizedBox(width: 16),
-                    _buildSocialButton("assets/facebook.png", _handleFacebookSignIn),
+                    _buildSocialButton("assets/facebook.png", _handleSignUp),
                   ],
                 ),
 
@@ -280,42 +280,5 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  // Méthode pour gérer l'inscription avec Google
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      await AuthService.signInWithGoogle();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion Google: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  // Méthode pour gérer l'inscription avec Facebook
-  Future<void> _handleFacebookSignIn() async {
-    try {
-      await AuthService.signInWithFacebook();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion Facebook: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  // Méthode pour gérer l'inscription avec Apple
-  Future<void> _handleAppleSignIn() async {
-    try {
-      await AuthService.signInWithApple();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion Apple: ${e.toString()}')),
-        );
-      }
-    }
-  }
+ 
 }

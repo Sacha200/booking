@@ -32,5 +32,5 @@ flutter:
     - assets/
     - assets/google.png
     - assets/apple.png
-    - assets/facebook.png
+    - assets/facebook.png    
     - .env
